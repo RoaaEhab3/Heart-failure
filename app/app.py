@@ -1,6 +1,6 @@
 import joblib
 import pandas as pd
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -11,6 +11,10 @@ def load_model(model_path):
     model = joblib.load(model_path)
     return model
 model = load_model('D:\Amit\Projects\Heart-failure\model\log_.joblib')
+
+@app.route('/', methods=['GET'])
+def show():
+    return render_template('predict.html')
 
 #Endpoint for health check
 @app.route('/health', methods=['POST'])
@@ -42,12 +46,22 @@ def health_check():
     "ST_Slope": [ST_Slope]
 })
     prediction = model.predict(example_input)[0]
-    if prediction == 1:
-        prediction = "The patient is likely to have a heart disease."
-    else:
-        prediction = "The patient is likely not to have a heart disease."
 
-    return(f"prediction: {prediction}")
+    if prediction == 1:
+        result = "⚠️ The patient is likely to have heart disease."
+        risk = "high"
+    else:
+        result = "✅ The patient is unlikely to have heart disease."
+        risk = "low"
+
+    return render_template(
+        'result.html',
+        prediction=result,
+        risk=risk
+    )
+
+
+
 
 app.run()
 
